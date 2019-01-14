@@ -49,6 +49,10 @@ IfNotExist, %ini_loc%
 }
 Makeini()
 
+CMDcontinue = submitParameters(['Mode','FROM_ACTIVITY'],['Child-patch-advisory-details','pagination'])
+CMDna = submitParameters(['id','markButton','mast-record-id','Mode','target-mode','from-mode','recordStatus','EFLUX_ACTION'],['106186814','true','725899','Child-patch-advisory-details','Patch-not-applicable','Child-patch-advisory-details','1','CLEAR_CHANGES'])
+CMDsubmit = submitParameters(['Mode','id','mast-record-id','from-mode','recordStatus','titleAttr','titleHeading'],['Patch-not-applicable','106186814','','Child-patch-advisory-details','1','Patch not applicable confirmation','Patch advisory status updated'])
+CMDreason = document.getElementById('reasonNA').value="sample text"
 
 Iniread, b_txt1, %ini_loc%, Text, b_text1
 Iniread, b_txt2, %ini_loc%, Text, b_text2
@@ -60,7 +64,7 @@ Gui, def:+AlwaysOnTop
 Gui, def:Font, bold
 Gui, def:Add, Text,, DB2 assist
 Gui, def:Font, normal
-Gui, def:Add, Text, x120 y278, 1.7b
+Gui, def:Add, Text, x120 y278, 2.0b
 Gui, def:Add, Text, x10 y20, Controls
 Gui, def:Add, Text, x82 y12, Autohide?
 Gui, def:Add, Checkbox, x135 y12 vhid
@@ -88,53 +92,22 @@ Gui, def:Add, Button, gset6 x77 y270 cPink, set
 Gui, def:Show, W150
 
 ;set timers for checks
-SetTimer , CalendarReloc, 1000, -1
 SetTimer , ClickCont, 1000, -1
-SetTimer , RSAcpy, 500, -1
 SetTimer , Autohide, 1000, -1
 
-return
-
-
-CalendarReloc:
-IfWinExist, Calendar - Mozilla,,,
-	{
-	WinGetPos, Xpos, Ypos,,, IBM CIRATS 4.2: Patch advisories,,,
-	Xpos := Xpos + 500
-	Ypos := Ypos + 400
-	WinMove, Calendar - Mozilla, , %Xpos%, %Ypos%
-	}
 return
 
 ClickCont:
 ifwinexist, IBM CIRATS 4.2: Patch advisories
 	{
-	ImageSearch, FoundX, FoundY, 0, 0, 3840, 2160, %pic_loc%\continue.png
-	ControlClick, x%FoundX% y%FoundY%, ahk_class MozillaWindowClass,, Left, 1, NA
-		if ErrorLevel = 1
-		{
-		ImageSearch, FoundX, FoundY, 0, 0, 3840, 2160, %pic_loc%\continue2.png
-		}
-		FoundY := FoundY + 5
-		FoundX := FoundX + 10
-		ControlClick, x%FoundX% y%FoundY%, ahk_class MozillaWindowClass,, Left, 1, NA
+    ControlSend, , ^+k, %window%
+    sleep 200
+    ClipSaved := ClipboardAll
+    clipboard := CMDcontinue
+    ControlSend, , ^v{enter}, %window%
+    clipboard := ClipSaved
 	}
 return
-
-RSAcpy:
-ifwinactive, 000403039522 - RSA SecurID Token
-	{
-	ControlClick, x114 y105, ahk_class QWidget,, Left, 1, NA
-	Sleep 50
-	ControlClick, x101 y72, ahk_class QWidget,, Left, 1, NA
-	Sleep 50
-	Controlsend,, 953208{enter}, 000403039522 - RSA SecurID Token
-	Sleep 100
-	ControlClick, x188 y104, ahk_class QWidget,, Left, 1, NA
-	WinMinimize, 000403039522 - RSA SecurID Token
-	}
-return
-
 
 Autohide:
 ifwinactive, %A_ScriptName%
@@ -411,35 +384,14 @@ return
 
 
 ctrl1:
-	WinActivate, IBM CIRATS 4.2
-	ImageSearch, FoundX, FoundY, 0, 0, 3840, 2160, %pic_loc%\na.png
-
-		if ErrorLevel = 1
-		Sleep 100
-		loop 3
-		{
-		WinActivate, IBM CIRATS 4.2: Patch advisories
-		Sendinput {Down}{Down}{Down}
-		sleep 500
-		ImageSearch, FoundX, FoundY, 0, 0, 2000, 1100, *10 %pic_loc%\na.png
-		if ErrorLevel = 0
-		break
-		if ErrorLevel = 1
-		ImageSearch, FoundX, FoundY, 0, 0, 2000, 1100, *10 %pic_loc%\na2.png
-		if ErrorLevel = 0
-		break
-		}
-		if ErrorLevel = 1
-		{
-		SplashImage,, b fs12 ctRed, ERROR: NOT FOUND
-		Sleep 3000
-		SplashImage, Off
-		return
-		}
-		else
-	FoundY := FoundY + 10
-	FoundX := FoundX + 10
-	ControlClick, x%FoundX% y%FoundY%, ahk_class MozillaWindowClass,, Left, 1, NA
+{
+  ControlSend, , ^+k, %window%
+  sleep 500
+  ClipSaved := ClipboardAll
+  clipboard := CMDna
+  ControlSend, , ^v{enter}, %window%
+  clipboard := ClipSaved
+}
 return
 
 ctrl2:

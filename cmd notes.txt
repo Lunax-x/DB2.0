@@ -1,0 +1,45 @@
+Fill in apar number
+document.getElementById('recordNum').value="106186814"
+
+Submit on search
+submitParameters(['Mode','FROM_ACTIVITY','fromMode','searchFlag'],['PAAdvanced-search','pagination','Patch-advisories-list','PA-ADV-SEARCH-SUBMIT'])
+
+Click found recordNum
+submitParameters(['Mode','cleanUp','id','recordStatus','recordType'],['Patch-advisories-list','true','106186814','1','Patch Advisory'])
+
+Mark N/A
+submitParameters(['id','markButton','mast-record-id','Mode','target-mode','from-mode','recordStatus','EFLUX_ACTION'],['106186814','true','725899','Child-patch-advisory-details','Patch-not-applicable','Child-patch-advisory-details','1','CLEAR_CHANGES'])
+
+Fill in N/A reason
+document.getElementById('reasonNA').value="sample text"
+
+Submit N/A
+submitParameters(['Mode','id','mast-record-id','from-mode','recordStatus','titleAttr','titleHeading'],['Patch-not-applicable','106186814','','Child-patch-advisory-details','1','Patch not applicable confirmation','Patch advisory status updated'])
+
+Click continue
+submitParameters(['Mode','FROM_ACTIVITY'],['Child-patch-advisory-details','pagination'])
+
+Add activity history
+submitParameters(['Mode','FromMode'],['Activity-history-add-activity','Child-patch-advisory-details'])
+
+Patch advisories link (back to search)
+submitNewFormParameters(['EFLUX_BREADCRUMB','EFLUX_BREADCRUMB','Mode','FROM_ACTIVITY'],['true','true','PAAdvanced-search','NAVIGATION'])
+
+Select date from Calendar
+document.MainForm.targetDate.value='29 Apr 2019'
+
+Find text on page (page check)
+(
+    document.documentElement.textContent || document.documentElement.innerText
+  ).indexOf('Patch advisory status updated') > -1
+  
+- continue ('Patch advisory status updated')
+
+
+
+
+<meta xmlns="" content="PAAdvanced-search_0" name="Description">
+<meta xmlns="" content="Patch-advisories-list_0" name="Description">
+<meta xmlns="" content="Child-patch-advisory-details_0" name="Description">
+<meta xmlns="" content="Patch-not-applicable_0" name="Description">
+<meta xmlns="" content="Risk-acceptance-request-edit_0" name="Description">

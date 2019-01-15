@@ -16,7 +16,7 @@
 ; Input PARAMETERS
 ;************************************************
 SendMode Input
-SetKeyDelay, 5, 1   ; for speed -1, -1,
+SetKeyDelay, 5, 5   ; for speed -1, -1,
 
 SetMouseDelay, 5		;0 recommend -1 for max speed
 SetDefaultMouseSpeed, 0		;0-100
@@ -36,7 +36,13 @@ SetTitleMatchMode Fast	;slow detect hidden windows
 ;i double the standard settings to be on the save side
 
 ini_loc = %userprofile%\Documents\.AHKsetting\DB2exec.ini ;ini file location var
-window = IBM CIRATS 4.2: Patch advisories
+winDef = IBM CIRATS 4.2: Patch advisories
+winSrch = DB2 Search
+winRes = DB2 Search Results
+winRec = DB2 Record Details
+winNA = DB2 Patch N/A
+winRsk = DB2 Edit risk
+
 
 Makeini()
 {
@@ -53,6 +59,7 @@ CMDcontinue = submitParameters(['Mode','FROM_ACTIVITY'],['Child-patch-advisory-d
 CMDna = submitParameters(['id','markButton','mast-record-id','Mode','target-mode','from-mode','recordStatus','EFLUX_ACTION'],['106186814','true','725899','Child-patch-advisory-details','Patch-not-applicable','Child-patch-advisory-details','1','CLEAR_CHANGES'])
 CMDsubmit = submitParameters(['Mode','id','mast-record-id','from-mode','recordStatus','titleAttr','titleHeading'],['Patch-not-applicable','106186814','','Child-patch-advisory-details','1','Patch not applicable confirmation','Patch advisory status updated'])
 CMDreason = document.getElementById('reasonNA').value="sample text"
+CMDclose = submitParameters(['id','closureParam','recordStatusUpdateFilterName','pendingNotifyInsertFilterName','redirectMode','Mode','EFLUX_ACTION','from-mode'],['106765260','true','pendingStatusUpdateFilter','pendingNotificationFilter','Closure-request-confirmation-PA','Child-patch-advisory-details','CLEAR_CHANGES','Child-patch-advisory-details'])
 
 Iniread, b_txt1, %ini_loc%, Text, b_text1
 Iniread, b_txt2, %ini_loc%, Text, b_text2
@@ -69,10 +76,10 @@ Gui, def:Add, Text, x10 y20, Controls
 Gui, def:Add, Text, x82 y12, Autohide?
 Gui, def:Add, Checkbox, x135 y12 vhid
 
-Gui, def:Add, Button, gctrl2 x10 y40, Submit
-Gui, def:Add, Button, gctrl3 x55 y40, Close
-Gui, def:Add, Button, gctrl1 x10 y70, N/A
-Gui, def:Add, Button, gctrl4 x55 y70, Batch close
+Gui, def:Add, Button, gCMDsubmit x10 y40, Submit
+Gui, def:Add, Button, gCMDclose x55 y40, Close
+Gui, def:Add, Button, gCMDna x10 y70, N/A
+Gui, def:Add, Button, gMassClose x55 y70, Batch close
 Gui, def:Add, Text,x10 y100, Automated text
 Gui, def:Add, Button, vtext1 gtext1 x10 y120 w60, %b_txt1%
 Gui, def:Add, Button, vtext2 gtext2 x10 y150 w60, %b_txt2%
@@ -92,7 +99,6 @@ Gui, def:Add, Button, gset6 x77 y270 cPink, set
 Gui, def:Show, W150
 
 ;set timers for checks
-SetTimer , ClickCont, 1000, -1
 SetTimer , Autohide, 1000, -1
 
 return
@@ -383,38 +389,39 @@ set6:
 return
 
 
-ctrl1:
+CMDna:
+ifwinexist, %winRec%
 {
-  ControlSend, , ^+k, %window%
-  sleep 500
+  ControlSend, ahk_parent, {Ctrl down}{Shift down}k{Ctrl up}{Shift up}, %winRec%
+  sleep 700
   ClipSaved := ClipboardAll
   clipboard := CMDna
-  ControlSend, , ^v{enter}, %window%
+  ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, %winRec%
   clipboard := ClipSaved
 }
 return
 
-ctrl2:
-	WinActivate, IBM CIRATS 4.2
-	ImageSearch, FoundX, FoundY, 0, 0, 3840, 2160, %pic_loc%\submit.png
-	FoundY := FoundY + 5
-	FoundX := FoundX + 5
-	ControlClick, x%FoundX% y%FoundY%, ahk_class MozillaWindowClass,, Left, 1, NA
+CMDsubmit:
+ControlSend, ahk_parent, {Ctrl down}{Shift down}k{Ctrl up}{Shift up}, ahk_class MozillaWindowClass
+ClipSaved := ClipboardAll
+clipboard := CMDsubmit
+ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, ahk_class MozillaWindowClass
+clipboard := ClipSaved
 return
 
 
 
-ctrl3:
-	WinActivate, IBM CIRATS 4.2
-	ImageSearch, FoundX, FoundY, 0, 0, 3840, 2160, %pic_loc%\close.png
-	FoundY := FoundY + 6
-	FoundX := FoundX + 6
-	ControlClick, x%FoundX% y%FoundY%, ahk_class MozillaWindowClass,, Left, 1, NA
+CMDclose:
+ControlSend, ahk_parent, {Ctrl down}{Shift down}k{Ctrl up}{Shift up}, %winRec%
+ClipSaved := ClipboardAll
+clipboard := CMDclose
+ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, %winRec%
+clipboard := ClipSaved
 return
 
 
 
-ctrl4:
+MassClose:
 	Runwait C:\Windows\Notepad.exe "%userprofile%\Documents\.AHKsetting\APAR list.txt"	;settings
 
 	GoSub Minput																		;multiline entry
@@ -433,11 +440,10 @@ ctrl4:
 	line_count := ErrorLevel + 1
 	timeleft := ((line_count) * 36)/60
 	timeleft := round(timeleft)
-	WinActivate, IBM CIRATS 4.2
-	ImageSearch, FoundX, FoundY, 0, 0, 3840, 2160, %pic_loc%\no.png ;excluding closed records checks
+	ifwinexist, %winSrch%
 		if ErrorLevel = 1
 		{
-		msgbox You cannot search including closed records. Please click no and try again.
+		msgbox Not at search page. Try again.
 		return
 		}
 	progr = 0
@@ -447,45 +453,26 @@ ctrl4:
 		progrbar := 100*(progr/line_count)
 
 	back:
-	WinActivate, IBM CIRATS 4.2
 	SplashImage,, x%xpos% y%ypos% b fs10, Processing %progr%/%line_count% #%A_LoopReadLine% `n Time remaining %timeleft% min.
 	Progress, b ZH10 w300 CT000000 x%xposP% y%YposP%
 	Progress, %progrbar%,, working...
-	ImageSearch, FoundX, FoundY, 0, 0, 3840, 2160, %pic_loc%\no.png
+  ifwinexist, %winSrch%
 		if ErrorLevel = 1
 		loop
 		{
 		Sleep 1500
-		ImageSearch, FoundX, FoundY, 0, 0, 3840, 2160, %pic_loc%\no.png
+		ifwinexist, %winSrch%
 		if ErrorLevel = 0
 		break
 		}
-	FoundY := FoundY + 30
-	FoundX := FoundX + 60
-	ControlClick, x%FoundX% y%FoundY%, ahk_class MozillaWindowClass,, Left, 2, NA
-	Sendinput, %A_LoopReadLine%{enter}
-	Sleep, 1500
-	ImageSearch, FoundX, FoundY, 0, 0, 3840, 2160, %pic_loc%\recnbr.png
-	if ErrorLevel = 1
-	loop 5
-	{
-		Sleep 1500
-		ImageSearch, FoundX, FoundY, 0, 0, 3840, 2160, %pic_loc%\recnbr.png
-		if ErrorLevel = 0
-		{
-		break
-		}
+	ControlSend,, %A_LoopReadLine%{enter}, %winSrch%
+	winwait, %winRes%,,15
 		if ErrorLevel = 1
-		{
-		ImageSearch, FoundX, FoundY, 0, 0, 3840, 2160, %pic_loc%\notfound.png
-		}
-		if ErrorLevel = 0
-		{
+	{
 		SplashImage,, x%xpos% y%ypos% b fs12, Seems closed, skipping...
 		Sleep 1500
 		goto end
 		}
-	}
 
 		if ErrorLevel = 1
 		{
@@ -498,7 +485,7 @@ ctrl4:
 	ControlClick, x%FoundX% y%FoundY%, ahk_class MozillaWindowClass,, Left, 1, NA
 	Sleep 3840
 
-	gosub ctrl1		;click not applicable
+	gosub CMDna		;click not applicable
 	if ErrorLevel = 1
 	{
 	SplashImage,, x%xpos% y%ypos% b ctRed fs12, Skip to close
@@ -524,7 +511,7 @@ ctrl4:
 	StringReplace, reas, reas, ¥,`n, All, ;recall linebreaks
 	SendInput, %reas%
 	Sleep 150
-	gosub ctrl2		;click submit
+	gosub CMDsubmit		;click submit
 		if ErrorLevel = 1
 		{
 		SplashImage,, x%xpos% y%ypos% b ctRed fs12, Error, terminating..
@@ -558,12 +545,12 @@ ctrl4:
 
 	Sleep 1000
 	close:
-	gosub ctrl3		;click close
+	gosub CMDclose		;click close
 	if ErrorLevel = 1
 	loop 3
 		{
 		Sleep 3300
-		gosub ctrl3
+		gosub CMDclose
 		if ErrorLevel = 0
 		break
 		}
@@ -620,7 +607,7 @@ text1:
 	Sendinput, %txt1%
 	Sleep, 150
 
-gosub, ctrl2
+gosub, CMDsubmit
 
 return
 
@@ -632,7 +619,7 @@ text2:
 	Sendinput, %txt2%
 	Sleep, 150
 
-gosub, ctrl2
+gosub, CMDsubmit
 
 return
 
@@ -644,7 +631,7 @@ text3:
 	Sendinput, %txt3%
 	Sleep, 150
 
-gosub, ctrl2
+gosub, CMDsubmit
 
 return
 
@@ -656,7 +643,7 @@ text4:
 	Sendinput, %txt4%
 	Sleep, 150
 
-gosub, ctrl2
+gosub, CMDsubmit
 
 return
 
@@ -668,7 +655,7 @@ text5:
 	Sendinput, %txt5%
 	Sleep, 150
 
-gosub, ctrl2
+gosub, CMDsubmit
 
 return
 
@@ -680,7 +667,7 @@ text6:
 	Sendinput, %txt6%
 	Sleep, 150
 
-gosub, ctrl2
+gosub, CMDsubmit
 
 return
 

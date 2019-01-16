@@ -1,0 +1,36 @@
+// ==UserScript==
+// @name         DB2 script support
+// @namespace    http://tampermonkey.net/
+// @version      0.1
+// @description  
+// @author       Lunaxx
+// @match        https://ehnsarmciratihs.extnet.ibm.com/services/security/cirats/index.jsp
+// @grant        none
+// @require http://code.jquery.com/jquery-latest.js
+// ==/UserScript==
+
+    'use strict';
+
+    // Your code here...
+
+$(document).ready(function() {
+    if (document.querySelector("meta[content=PAAdvanced-search_0]")){
+        $(document).prop('title', 'DB2 Search')
+    } else if
+        (document.querySelector("meta[content=Patch-advisories-list_0]")){
+        $(document).prop('title', 'DB2 Search Results')
+    } else if
+        (document.querySelector("meta[content=Child-patch-advisory-details_0]")){
+        $(document).prop('title', 'DB2 Record Details')
+    } else if
+        (document.querySelector("meta[content=Patch-not-applicable_0]")){
+        $(document).prop('title', 'DB2 Patch N/A')
+    } else if
+        (document.querySelector("meta[content=Risk-acceptance-request-edit_0]")){
+        $(document).prop('title', 'DB2 Edit risk')
+    } else if
+        (document.querySelector("meta[content=Patch-not-applicable_1]")){
+        $(document).prop('title', 'DB2 Continue')
+    }
+    $('input#recordNum').css('background-color', '#ffcece')
+});

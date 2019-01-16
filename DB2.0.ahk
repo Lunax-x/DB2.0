@@ -36,12 +36,13 @@ SetTitleMatchMode Fast	;slow detect hidden windows
 ;i double the standard settings to be on the save side
 
 ini_loc = %userprofile%\Documents\.AHKsetting\DB2exec.ini ;ini file location var
-winDef = IBM CIRATS 4.2: Patch advisories
+winDef = IBM CIRATS
 winSrch = DB2 Search
 winRes = DB2 Search Results
 winRec = DB2 Record Details
 winNA = DB2 Patch N/A
 winRsk = DB2 Edit risk
+winNAcont = DB2 Continue
 
 
 Makeini()
@@ -58,8 +59,13 @@ Makeini()
 CMDcontinue = submitParameters(['Mode','FROM_ACTIVITY'],['Child-patch-advisory-details','pagination'])
 CMDna = submitParameters(['id','markButton','mast-record-id','Mode','target-mode','from-mode','recordStatus','EFLUX_ACTION'],['106186814','true','725899','Child-patch-advisory-details','Patch-not-applicable','Child-patch-advisory-details','1','CLEAR_CHANGES'])
 CMDsubmit = submitParameters(['Mode','id','mast-record-id','from-mode','recordStatus','titleAttr','titleHeading'],['Patch-not-applicable','106186814','','Child-patch-advisory-details','1','Patch not applicable confirmation','Patch advisory status updated'])
-CMDreason = document.getElementById('reasonNA').value="sample text"
+CMDreason = document.getElementById('reasonNA').value=
 CMDclose = submitParameters(['id','closureParam','recordStatusUpdateFilterName','pendingNotifyInsertFilterName','redirectMode','Mode','EFLUX_ACTION','from-mode'],['106765260','true','pendingStatusUpdateFilter','pendingNotificationFilter','Closure-request-confirmation-PA','Child-patch-advisory-details','CLEAR_CHANGES','Child-patch-advisory-details'])
+CMDfound = submitParameters(['Mode','cleanUp','id','recordStatus','recordType'],['Patch-advisories-list','true','106186814','1','Patch Advisory'])
+CMDfillRec = document.getElementById('recordNum').value=
+CMDsubmitRec = submitParameters(['Mode','FROM_ACTIVITY','fromMode','searchFlag'],['PAAdvanced-search','pagination','Patch-advisories-list','PA-ADV-SEARCH-SUBMIT'])
+CMDreturn = submitNewFormParameters(['EFLUX_BREADCRUMB','EFLUX_BREADCRUMB','Mode','FROM_ACTIVITY'],['true','true','PAAdvanced-search','NAVIGATION'])
+
 
 Iniread, b_txt1, %ini_loc%, Text, b_text1
 Iniread, b_txt2, %ini_loc%, Text, b_text2
@@ -104,14 +110,12 @@ SetTimer , Autohide, 1000, -1
 return
 
 ClickCont:
-ifwinexist, IBM CIRATS 4.2: Patch advisories
+ifwinexist, %winNAcont%
 	{
-    ControlSend, , ^+k, %window%
+    ControlSend, ahk_parent, {Ctrl down}{Shift down}k{Ctrl up}{Shift up}, %winNAcont%
     sleep 200
-    ClipSaved := ClipboardAll
     clipboard := CMDcontinue
-    ControlSend, , ^v{enter}, %window%
-    clipboard := ClipSaved
+    ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, %window%
 	}
 return
 
@@ -122,12 +126,12 @@ gui, def:submit, nohide
 	if (hid = 1)
 	{
 		WinGet, win_status, MinMax, %A_ScriptName%
-		If (WinActive("IBM CIRATS 4.2: Patch advisories") && (win_status = -1))
+		If (WinActive("DB2") && (win_status = -1))
 		{
 		winrestore, %A_ScriptName%
 		WinActivate, IBM CIRATS 4.2: Patch advisories
 		}
-		If (!WinActive("IBM CIRATS 4.2: Patch advisories") && (win_status = 0))
+		If (!WinActive("DB2") && (win_status = 0))
 		{
 		WinMinimize, %A_ScriptName%
 		}
@@ -430,7 +434,7 @@ MassClose:
 		return
 
 	;line count
-	WinGetPos, Xpos, Ypos,,, IBM CIRATS 4.2: Patch advisories,,,
+	WinGetPos, Xpos, Ypos,,, %winSrch%
 	Xpos := Xpos + 7
 	Ypos := Ypos + 7
 	XposP := Xpos
@@ -465,126 +469,53 @@ MassClose:
 		if ErrorLevel = 0
 		break
 		}
-	ControlSend,, %A_LoopReadLine%{enter}, %winSrch%
+	;START-------------------------------------------------------------------------
+  ControlSend, ahk_parent, {Ctrl down}{Shift down}k{Ctrl up}{Shift up}, %winSrch%
+	Sleep 1000
+	ClipSaved := ClipboardAll
+	clipboard = %CMDfillRec%"%A_LoopReadLine%"
+
+	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, %winSrch%
+	clipboard := CMDsubmitRec
+	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, %winSrch%
 	winwait, %winRes%,,15
-		if ErrorLevel = 1
-	{
-		SplashImage,, x%xpos% y%ypos% b fs12, Seems closed, skipping...
-		Sleep 1500
-		goto end
-		}
+;add check in case no results found
+	clipboard := CMDfound
+	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, %winRes%
 
-		if ErrorLevel = 1
-		{
-		SplashImage,, x%xpos% y%ypos% b fs12, Error, retrying..
-		Sleep 3840
-		goto back
-		}
-	FoundY := FoundY + 55
-	FoundX := FoundX + 20
-	ControlClick, x%FoundX% y%FoundY%, ahk_class MozillaWindowClass,, Left, 1, NA
-	Sleep 3840
-
+	winwait, %winRec%
 	gosub CMDna		;click not applicable
+	winwait, %winNA%,,15
 	if ErrorLevel = 1
 	{
 	SplashImage,, x%xpos% y%ypos% b ctRed fs12, Skip to close
 	Sleep 3000
 	goto close
 	}
-	Sleep, 1500
-	ImageSearch, FoundX, FoundY, 0, 0, 3840, 2160, %pic_loc%\char.png
-	if ErrorLevel = 1
-		loop 5
-		{
-		Sleep 1500
-		ImageSearch, FoundX, FoundY, 0, 0, 3840, 2160, %pic_loc%\char.png
-		if ErrorLevel = 0
-		break
-		}
 	else
 	Sleep 100
-	FoundY := FoundY - 50
-	FoundX := FoundX + 50
-	ControlClick, x%FoundX% y%FoundY%, ahk_class MozillaWindowClass,, Left, 1, NA
 	Iniread, reas, %ini_loc%, Text, reason
 	StringReplace, reas, reas, ¥,`n, All, ;recall linebreaks
-	SendInput, %reas%
+	clipboard = %CMDreason%"%reas%"
+	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, %winNA%
 	Sleep 150
 	gosub CMDsubmit		;click submit
-		if ErrorLevel = 1
-		{
-		SplashImage,, x%xpos% y%ypos% b ctRed fs12, Error, terminating..
-		Sleep, 5000
-		error=1
-		goto final
-		return
-		}
-		else
-	Sleep 500
-
+	winwait, %winNAcont%
 	gosub ClickCont		;click continue
 
-		if ErrorLevel = 1
-		loop 3
-		{
-		Sleep 3000
-		gosub ClickCont
-		if ErrorLevel = 0
-		break
-		}
-		if ErrorLevel = 1
-		{
-		SplashImage,, x%xpos% y%ypos% b ctRed fs12, Error, terminating..
-		Sleep, 5000
-		error=1
-		goto final
-		return
-		}
 
-
-	Sleep 1000
+	winwait, %winRec%
 	close:
 	gosub CMDclose		;click close
-	if ErrorLevel = 1
-	loop 3
-		{
-		Sleep 3300
-		gosub CMDclose
-		if ErrorLevel = 0
-		break
-		}
-		if ErrorLevel = 1
-		{
-		SplashImage,, x%xpos% y%ypos% b ctRed fs12, Error, terminating..
-		Sleep, 5000
-		error=1
-		goto final
-		return
-		}
-		else
-	FoundY := FoundY + 6
-	FoundX := FoundX + 6
-	ControlClick, x%FoundX% y%FoundY%, ahk_class MozillaWindowClass,, Left, 1, NA
-	Sleep 2500
+  winwait, %winDef%
 
 	end:
-	MouseMove, 1, 0 , , R
-	ImageSearch, FoundX, FoundY, 0, 0, 3840, 2160, *64 %pic_loc%\padv.png
+	clipboard := CMDreturn
+	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, %winDef%
 	SplashImage,, x%xpos% y%ypos% b fs10 ZH30, Returning to search
-	if ErrorLevel = 1
-		{
-		ControlSend,, {pgup}, IBM CIRATS 4.2: Patch advisories
-		Sleep, 500
-		goto end
-		}
-	if ErrorLevel = 0
-	{
-	FoundY := FoundY + 8
-	FoundX := FoundX + 6
-	ControlClick, x%FoundX% y%FoundY%, ahk_class MozillaWindowClass,, Left, 1, NA
-	}
+
 	timeleft := ((line_count - A_index) * 36)/60
+	timeleft := round(timeleft)
 	Iniread, closed_r, %ini_loc%, Stats, closed_count, 0
 	closed := closed_r + 1
 	Iniwrite, %closed%, %ini_loc%, Stats, closed_count
@@ -592,6 +523,8 @@ MassClose:
 	}
 	SplashImage, Off
 	Progress, Off
+
+	clipboard := ClipSaved
 	final:
 	if error = 1
 	msgbox Processing failed at record #%A_LoopReadLine%
@@ -603,7 +536,7 @@ text1:
 
 	Iniread, txt1, %ini_loc%, Text, text1
 	StringReplace, txt1, txt1, ¥,`n, All,
-	WinActivate, IBM CIRATS 4.2: Patch advisories
+	WinActivate, ahk_class MozillaWindowClass
 	Sendinput, %txt1%
 	Sleep, 150
 
@@ -615,7 +548,7 @@ text2:
 
 	Iniread, txt2, %ini_loc%, Text, text2
 	StringReplace, txt2, txt2, ¥,`n, All,
-	WinActivate, IBM CIRATS 4.2: Patch advisories
+	WinActivate, ahk_class MozillaWindowClass
 	Sendinput, %txt2%
 	Sleep, 150
 
@@ -627,7 +560,7 @@ text3:
 
 	Iniread, txt3, %ini_loc%, Text, text3
 	StringReplace, txt3, txt3, ¥,`n, All,
-	WinActivate, IBM CIRATS 4.2: Patch advisories
+	WinActivate, ahk_class MozillaWindowClass
 	Sendinput, %txt3%
 	Sleep, 150
 
@@ -639,7 +572,7 @@ text4:
 
 	Iniread, txt4, %ini_loc%, Text, text4
 	StringReplace, txt4, txt4, ¥,`n, All,
-	WinActivate, IBM CIRATS 4.2: Patch advisories
+	WinActivate, ahk_class MozillaWindowClass
 	Sendinput, %txt4%
 	Sleep, 150
 
@@ -651,7 +584,7 @@ text5:
 
 	Iniread, txt5, %ini_loc%, Text, text5
 	StringReplace, txt5, txt5, ¥,`n, All,
-	WinActivate, IBM CIRATS 4.2: Patch advisories
+	WinActivate, ahk_class MozillaWindowClass
 	Sendinput, %txt5%
 	Sleep, 150
 
@@ -663,7 +596,7 @@ text6:
 
 	Iniread, txt6, %ini_loc%, Text, text6
 	StringReplace, txt6, txt6, ¥,`n, All,
-	WinActivate, IBM CIRATS 4.2: Patch advisories
+	WinActivate, ahk_class MozillaWindowClass
 	Sendinput, %txt6%
 	Sleep, 150
 

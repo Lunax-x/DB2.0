@@ -19,6 +19,9 @@ submitParameters(['Mode','id','mast-record-id','from-mode','recordStatus','title
 Click continue
 submitParameters(['Mode','FROM_ACTIVITY'],['Child-patch-advisory-details','pagination'])
 
+Click close
+submitParameters(['id','closureParam','recordStatusUpdateFilterName','pendingNotifyInsertFilterName','redirectMode','Mode','EFLUX_ACTION','from-mode'],['106765260','true','pendingStatusUpdateFilter','pendingNotificationFilter','Closure-request-confirmation-PA','Child-patch-advisory-details','CLEAR_CHANGES','Child-patch-advisory-details'])
+
 Add activity history
 submitParameters(['Mode','FromMode'],['Activity-history-add-activity','Child-patch-advisory-details'])
 
@@ -42,4 +45,7 @@ Find text on page (page check)
 <meta xmlns="" content="Patch-advisories-list_0" name="Description">
 <meta xmlns="" content="Child-patch-advisory-details_0" name="Description">
 <meta xmlns="" content="Patch-not-applicable_0" name="Description">
+<meta xmlns="" content="Patch-not-applicable_1" name="Description">
 <meta xmlns="" content="Risk-acceptance-request-edit_0" name="Description">
+<meta xmlns="" content="Activity-history-add-activity_0" name="Description">
+<meta xmlns="" content="Activity-history-add-activity_1" name="Description">

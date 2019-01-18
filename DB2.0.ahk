@@ -56,15 +56,6 @@ IfNotExist, %ini_loc%
 }
 Makeini()
 
-CMDcontinue = submitParameters(['Mode','FROM_ACTIVITY'],['Child-patch-advisory-details','pagination'])
-CMDna = submitParameters(['id','markButton','mast-record-id','Mode','target-mode','from-mode','recordStatus','EFLUX_ACTION'],['106186814','true','725899','Child-patch-advisory-details','Patch-not-applicable','Child-patch-advisory-details','1','CLEAR_CHANGES'])
-CMDsubmit = submitParameters(['Mode','id','mast-record-id','from-mode','recordStatus','titleAttr','titleHeading'],['Patch-not-applicable','106186814','','Child-patch-advisory-details','1','Patch not applicable confirmation','Patch advisory status updated'])
-CMDreason = document.getElementById('reasonNA').value=
-CMDclose = submitParameters(['id','closureParam','recordStatusUpdateFilterName','pendingNotifyInsertFilterName','redirectMode','Mode','EFLUX_ACTION','from-mode'],['106765260','true','pendingStatusUpdateFilter','pendingNotificationFilter','Closure-request-confirmation-PA','Child-patch-advisory-details','CLEAR_CHANGES','Child-patch-advisory-details'])
-CMDfound = submitParameters(['Mode','cleanUp','id','recordStatus','recordType'],['Patch-advisories-list','true','106186814','1','Patch Advisory'])
-CMDfillRec = document.getElementById('recordNum').value=
-CMDsubmitRec = submitParameters(['Mode','FROM_ACTIVITY','fromMode','searchFlag'],['PAAdvanced-search','pagination','Patch-advisories-list','PA-ADV-SEARCH-SUBMIT'])
-CMDreturn = submitNewFormParameters(['EFLUX_BREADCRUMB','EFLUX_BREADCRUMB','Mode','FROM_ACTIVITY'],['true','true','PAAdvanced-search','NAVIGATION'])
 
 
 Iniread, b_txt1, %ini_loc%, Text, b_text1
@@ -77,14 +68,11 @@ Gui, def:+AlwaysOnTop
 Gui, def:Font, bold
 Gui, def:Add, Text,, DB2 assist
 Gui, def:Font, normal
-Gui, def:Add, Text, x120 y278, 2.0b
+Gui, def:Add, Text, x120 y278, 2.0r
 Gui, def:Add, Text, x10 y20, Controls
 Gui, def:Add, Text, x82 y12, Autohide?
 Gui, def:Add, Checkbox, x135 y12 vhid
 
-Gui, def:Add, Button, gCMDsubmit x10 y40, Submit
-Gui, def:Add, Button, gCMDclose x55 y40, Close
-Gui, def:Add, Button, gCMDna x10 y70, N/A
 Gui, def:Add, Button, gMassClose x55 y70, Batch close
 Gui, def:Add, Text,x10 y100, Automated text
 Gui, def:Add, Button, vtext1 gtext1 x10 y120 w60, %b_txt1%
@@ -107,16 +95,6 @@ Gui, def:Show, W150
 ;set timers for checks
 SetTimer , Autohide, 1000, -1
 
-return
-
-ClickCont:
-ifwinexist, %winNAcont%
-	{
-    ControlSend, ahk_parent, {Ctrl down}{Shift down}k{Ctrl up}{Shift up}, %winNAcont%
-    sleep 200
-    clipboard := CMDcontinue
-    ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, %window%
-	}
 return
 
 Autohide:
@@ -392,19 +370,6 @@ set6:
 		WinSet, AlwaysOnTop, Toggle, %A_ScriptName%
 return
 
-
-CMDna:
-ifwinexist, %winRec%
-{
-  ControlSend, ahk_parent, {Ctrl down}{Shift down}k{Ctrl up}{Shift up}, %winRec%
-  sleep 700
-  ClipSaved := ClipboardAll
-  clipboard := CMDna
-  ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, %winRec%
-  clipboard := ClipSaved
-}
-return
-
 CMDsubmit:
 ControlSend, ahk_parent, {Ctrl down}{Shift down}k{Ctrl up}{Shift up}, ahk_class MozillaWindowClass
 ClipSaved := ClipboardAll
@@ -444,72 +409,85 @@ MassClose:
 	line_count := ErrorLevel + 1
 	timeleft := ((line_count) * 36)/60
 	timeleft := round(timeleft)
-	ifwinexist, %winSrch%
-		if ErrorLevel = 1
-		{
-		msgbox Not at search page. Try again.
-		return
-		}
+
 	progr = 0
 	Loop, read, %userprofile%\Documents\.AHKsetting\APAR list.txt
 	{
 		progr := progr + 1
 		progrbar := 100*(progr/line_count)
 
+;COMMANDS DEFINED
+		CMDna = submitParameters(['id','markButton','mast-record-id','Mode','target-mode','from-mode','recordStatus','EFLUX_ACTION'],['%A_LoopReadLine%','true','725899','Child-patch-advisory-details','Patch-not-applicable','Child-patch-advisory-details','1','CLEAR_CHANGES'])
+		CMDsubmit = submitParameters(['Mode','id','mast-record-id','from-mode','recordStatus','titleAttr','titleHeading'],['Patch-not-applicable','%A_LoopReadLine%','','Child-patch-advisory-details','1','Patch not applicable confirmation','Patch advisory status updated'])
+		CMDreason = document.getElementById('reasonNA').value=
+		CMDclose = submitParameters(['id','closureParam','recordStatusUpdateFilterName','pendingNotifyInsertFilterName','redirectMode','Mode','EFLUX_ACTION','from-mode'],['%A_LoopReadLine%','true','pendingStatusUpdateFilter','pendingNotificationFilter','Closure-request-confirmation-PA','Child-patch-advisory-details','CLEAR_CHANGES','Child-patch-advisory-details'])
+		CMDreturn = submitNewFormParameters(['EFLUX_BREADCRUMB','EFLUX_BREADCRUMB','Mode','FROM_ACTIVITY'],['true','true','PAAdvanced-search','NAVIGATION'])
+		CMDfillRec = document.getElementById('recordNum').value=
+		CMDsubmitRec = submitParameters(['Mode','FROM_ACTIVITY','fromMode','searchFlag'],['PAAdvanced-search','pagination','Patch-advisories-list','PA-ADV-SEARCH-SUBMIT'])
+		CMDclickFound = submitParameters(['Mode','cleanUp','id','recordStatus','recordType'],['Patch-advisories-list','true','%A_LoopReadLine%','1','Patch Advisory'])
+		CMDcontinue = submitParameters(['Mode','FROM_ACTIVITY'],['Child-patch-advisory-details','pagination'])
+
 	back:
 	SplashImage,, x%xpos% y%ypos% b fs10, Processing %progr%/%line_count% #%A_LoopReadLine% `n Time remaining %timeleft% min.
 	Progress, b ZH10 w300 CT000000 x%xposP% y%YposP%
 	Progress, %progrbar%,, working...
-  ifwinexist, %winSrch%
-		if ErrorLevel = 1
-		loop
-		{
-		Sleep 1500
-		ifwinexist, %winSrch%
-		if ErrorLevel = 0
-		break
-		}
+
 	;START-------------------------------------------------------------------------
+	;go record
+	winwait, %winSrch%,,15
+	if ErrorLevel = 1
+	{
+	msgbox Not at search page. Try again.
+	return
+	}
   ControlSend, ahk_parent, {Ctrl down}{Shift down}k{Ctrl up}{Shift up}, %winSrch%
 	Sleep 1000
 	ClipSaved := ClipboardAll
 	clipboard = %CMDfillRec%"%A_LoopReadLine%"
-
 	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, %winSrch%
-	clipboard := CMDsubmitRec
-	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, %winSrch%
-	winwait, %winRes%,,15
+	Sleep 100
 ;add check in case no results found
-	clipboard := CMDfound
+	clipboard = %CMDsubmitRec%
+	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, %winSrch%
+
+	winwait, %winRes%,,15
+	Sleep 200
+	clipboard = %CMDclickFound%
 	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, %winRes%
 
-	winwait, %winRec%
-	gosub CMDna		;click not applicable
+	winwait, %winRec%,,15
+	Sleep 200
+	clipboard = %CMDna%
+	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, %winRec%
+
 	winwait, %winNA%,,15
-	if ErrorLevel = 1
-	{
-	SplashImage,, x%xpos% y%ypos% b ctRed fs12, Skip to close
-	Sleep 3000
-	goto close
-	}
-	else
-	Sleep 100
+	Sleep 200
 	Iniread, reas, %ini_loc%, Text, reason
 	StringReplace, reas, reas, ¥,`n, All, ;recall linebreaks
 	clipboard = %CMDreason%"%reas%"
 	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, %winNA%
 	Sleep 150
-	gosub CMDsubmit		;click submit
-	winwait, %winNAcont%
-	gosub ClickCont		;click continue
 
+	;CMDsubmit:
+	ControlSend, ahk_parent, {Ctrl down}{Shift down}k{Ctrl up}{Shift up}, ahk_class MozillaWindowClass
+	clipboard := CMDsubmit
+	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, ahk_class MozillaWindowClass
+
+	winwait, %winNAcont%
+	Sleep 200
+	clipboard := CMDcontinue
+	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, ahk_class MozillaWindowClass
 
 	winwait, %winRec%
-	close:
-	gosub CMDclose		;click close
-  winwait, %winDef%
+	Sleep 200
+  ;close:
+	ControlSend, ahk_parent, {Ctrl down}{Shift down}k{Ctrl up}{Shift up}, %winRec%
+	clipboard := CMDclose
+	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, %winRec%
 
 	end:
+	winwait, %winDef%
+	Sleep 200
 	clipboard := CMDreturn
 	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, %winDef%
 	SplashImage,, x%xpos% y%ypos% b fs10 ZH30, Returning to search

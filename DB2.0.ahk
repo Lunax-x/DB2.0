@@ -16,7 +16,7 @@
 ; Input PARAMETERS
 ;************************************************
 SendMode Input
-SetKeyDelay, 5, 5   ; for speed -1, -1,
+SetKeyDelay, 10, 10   ; for speed -1, -1,
 
 SetMouseDelay, 5		;0 recommend -1 for max speed
 SetDefaultMouseSpeed, 0		;0-100
@@ -68,7 +68,7 @@ Gui, def:+AlwaysOnTop
 Gui, def:Font, bold
 Gui, def:Add, Text,, DB2 assist
 Gui, def:Font, normal
-Gui, def:Add, Text, x120 y278, 2.0r
+Gui, def:Add, Text, x120 y278, 2.1b
 Gui, def:Add, Text, x10 y20, Controls
 Gui, def:Add, Text, x82 y12, Autohide?
 Gui, def:Add, Checkbox, x135 y12 vhid
@@ -407,7 +407,7 @@ MassClose:
 	FileRead File, %userprofile%\Documents\.AHKsetting\APAR list.txt
 	StringReplace File, File, `n, `n, All UseErrorLevel
 	line_count := ErrorLevel + 1
-	timeleft := ((line_count) * 36)/60
+	timeleft := ((line_count) * 20)
 	timeleft := round(timeleft)
 
 	progr = 0
@@ -428,7 +428,7 @@ MassClose:
 		CMDcontinue = submitParameters(['Mode','FROM_ACTIVITY'],['Child-patch-advisory-details','pagination'])
 
 	back:
-	SplashImage,, x%xpos% y%ypos% b fs10, Processing %progr%/%line_count% #%A_LoopReadLine% `n Time remaining %timeleft% min.
+	SplashImage,, x%xpos% y%ypos% b fs10, Processing %progr%/%line_count% #%A_LoopReadLine% `n Time remaining %timeleft% sec.
 	Progress, b ZH10 w300 CT000000 x%xposP% y%YposP%
 	Progress, %progrbar%,, working...
 
@@ -492,7 +492,7 @@ MassClose:
 	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, %winDef%
 	SplashImage,, x%xpos% y%ypos% b fs10 ZH30, Returning to search
 
-	timeleft := ((line_count - A_index) * 36)/60
+	timeleft := ((line_count - A_index) * 20)
 	timeleft := round(timeleft)
 	Iniread, closed_r, %ini_loc%, Stats, closed_count, 0
 	closed := closed_r + 1

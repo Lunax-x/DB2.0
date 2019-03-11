@@ -16,7 +16,7 @@
 ; Input PARAMETERS
 ;************************************************
 SendMode Input
-SetKeyDelay, 10, 10   ; for speed -1, -1,
+SetKeyDelay, 50, 50   ; for speed -1, -1,
 
 SetMouseDelay, 5		;0 recommend -1 for max speed
 SetDefaultMouseSpeed, 0		;0-100
@@ -68,7 +68,7 @@ Gui, def:+AlwaysOnTop
 Gui, def:Font, bold
 Gui, def:Add, Text,, DB2 assist
 Gui, def:Font, normal
-Gui, def:Add, Text, x120 y278, 2.1b
+Gui, def:Add, Text, x120 y278, 2.2b
 Gui, def:Add, Text, x10 y20, Controls
 Gui, def:Add, Text, x82 y12, Autohide?
 Gui, def:Add, Checkbox, x135 y12 vhid
@@ -464,7 +464,7 @@ MassClose:
 	Sleep 200
 	Iniread, reas, %ini_loc%, Text, reason
 	StringReplace, reas, reas, ¥,`n, All, ;recall linebreaks
-	clipboard = %CMDreason%"%reas%"
+	clipboard = %CMDreason%``%reas%``
 	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, %winNA%
 	Sleep 150
 
@@ -490,7 +490,6 @@ MassClose:
 	Sleep 200
 	clipboard := CMDreturn
 	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, %winDef%
-	SplashImage,, x%xpos% y%ypos% b fs10 ZH30, Returning to search
 
 	timeleft := ((line_count - A_index) * 20)
 	timeleft := round(timeleft)
@@ -518,8 +517,6 @@ text1:
 	Sendinput, %txt1%
 	Sleep, 150
 
-gosub, CMDsubmit
-
 return
 
 text2:
@@ -529,8 +526,6 @@ text2:
 	WinActivate, ahk_class MozillaWindowClass
 	Sendinput, %txt2%
 	Sleep, 150
-
-gosub, CMDsubmit
 
 return
 
@@ -542,8 +537,6 @@ text3:
 	Sendinput, %txt3%
 	Sleep, 150
 
-gosub, CMDsubmit
-
 return
 
 text4:
@@ -553,8 +546,6 @@ text4:
 	WinActivate, ahk_class MozillaWindowClass
 	Sendinput, %txt4%
 	Sleep, 150
-
-gosub, CMDsubmit
 
 return
 
@@ -566,8 +557,6 @@ text5:
 	Sendinput, %txt5%
 	Sleep, 150
 
-gosub, CMDsubmit
-
 return
 
 text6:
@@ -577,8 +566,6 @@ text6:
 	WinActivate, ahk_class MozillaWindowClass
 	Sendinput, %txt6%
 	Sleep, 150
-
-gosub, CMDsubmit
 
 return
 

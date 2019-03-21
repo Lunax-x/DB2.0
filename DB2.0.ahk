@@ -43,6 +43,7 @@ winRec = DB2 Record Details
 winNA = DB2 Patch N/A
 winRsk = DB2 Edit risk
 winNAcont = DB2 Continue
+winAddAct = DB2 Add activity
 
 
 Makeini()
@@ -68,12 +69,21 @@ Gui, def:+AlwaysOnTop
 Gui, def:Font, bold
 Gui, def:Add, Text,, DB2 assist
 Gui, def:Font, normal
-Gui, def:Add, Text, x120 y278, 2.2b
+Gui, def:Add, Text, x120 y278, 2.5b
 Gui, def:Add, Text, x10 y20, Controls
 Gui, def:Add, Text, x82 y12, Autohide?
 Gui, def:Add, Checkbox, x135 y12 vhid
 
-Gui, def:Add, Button, gMassClose x55 y70, Batch close
+Gui, def:Add, Button, gMassExtend x10 y40, Batch extend
+gui, def:font, s6
+Gui, def:Add, Text,x85 y40, - only extended
+Gui, def:Add, Text,x90 y52, records
+gui, def:font,
+Gui, def:Add, Button, gMassClose x10 y70, Batch close
+Gui, def:Font, s5
+Gui, def:Add, Button, ginfo x120 y260 cPink, info
+gui, def:font,
+
 Gui, def:Add, Text,x10 y100, Automated text
 Gui, def:Add, Button, vtext1 gtext1 x10 y120 w60, %b_txt1%
 Gui, def:Add, Button, vtext2 gtext2 x10 y150 w60, %b_txt2%
@@ -116,6 +126,13 @@ gui, def:submit, nohide
 	}
 	skip:
 Sleep 500
+return
+
+Info:
+	Iniread,counter, %ini_loc%, Stats, closed_count
+	timesaved := (counter * 2)/60
+	timesaved := round(timesaved, 1)
+	msgbox, %counter% records were processed and you saved approximately %timesaved% hours of your life.
 return
 
 Minput:
@@ -427,7 +444,7 @@ MassClose:
 		CMDclickFound = submitParameters(['Mode','cleanUp','id','recordStatus','recordType'],['Patch-advisories-list','true','%A_LoopReadLine%','1','Patch Advisory'])
 		CMDcontinue = submitParameters(['Mode','FROM_ACTIVITY'],['Child-patch-advisory-details','pagination'])
 
-	back:
+
 	SplashImage,, x%xpos% y%ypos% b fs10, Processing %progr%/%line_count% #%A_LoopReadLine% `n Time remaining %timeleft% sec.
 	Progress, b ZH10 w300 CT000000 x%xposP% y%YposP%
 	Progress, %progrbar%,, working...
@@ -503,6 +520,150 @@ MassClose:
 
 	clipboard := ClipSaved
 	final:
+	if error = 1
+	msgbox Processing failed at record #%A_LoopReadLine%
+	else
+	msgbox Processing complete
+return
+
+MassExtend:
+	Inputbox, RskRecNr, Enter Risk Evaluation record number
+	Inputbox, date, Enter date for extension, Ex.: 1 Jun 2019 - any other format will fail
+	Runwait C:\Windows\Notepad.exe "%userprofile%\Documents\.AHKsetting\APAR list.txt"	;settings
+
+	GoSub Minput																		;multiline entry
+	Sleep 150
+	if (Cancel = 1 or ErrorLevel = 1)
+		return
+
+	;line count
+	WinGetPos, Xpos, Ypos,,, %winSrch%
+	Xpos := Xpos + 7
+	Ypos := Ypos + 7
+	XposP := Xpos
+	YposP := Ypos + 37
+	FileRead File, %userprofile%\Documents\.AHKsetting\APAR list.txt
+	StringReplace File, File, `n, `n, All UseErrorLevel
+	line_count := ErrorLevel + 1
+	timeleft := ((line_count) * 20)
+	timeleft := round(timeleft)
+
+	progr = 0
+	Loop, read, %userprofile%\Documents\.AHKsetting\APAR list.txt
+	{
+		progr := progr + 1
+		progrbar := 100*(progr/line_count)
+
+;COMMANDS DEFINED
+		CMDna = submitParameters(['id','markButton','mast-record-id','Mode','target-mode','from-mode','recordStatus','EFLUX_ACTION'],['%A_LoopReadLine%','true','725899','Child-patch-advisory-details','Patch-not-applicable','Child-patch-advisory-details','1','CLEAR_CHANGES'])
+		CMDsubmit = submitParameters(['Mode','id','mast-record-id','from-mode','recordStatus','titleAttr','titleHeading'],['Patch-not-applicable','%A_LoopReadLine%','','Child-patch-advisory-details','1','Patch not applicable confirmation','Patch advisory status updated'])
+		CMDreason = document.getElementById('reasonNA').value=
+		CMDclose = submitParameters(['id','closureParam','recordStatusUpdateFilterName','pendingNotifyInsertFilterName','redirectMode','Mode','EFLUX_ACTION','from-mode'],['%A_LoopReadLine%','true','pendingStatusUpdateFilter','pendingNotificationFilter','Closure-request-confirmation-PA','Child-patch-advisory-details','CLEAR_CHANGES','Child-patch-advisory-details'])
+		CMDreturn = submitNewFormParameters(['EFLUX_BREADCRUMB','EFLUX_BREADCRUMB','Mode','FROM_ACTIVITY'],['true','true','PAAdvanced-search','NAVIGATION'])
+		CMDfillRec = document.getElementById('recordNum').value=
+		CMDsubmitRec = submitParameters(['Mode','FROM_ACTIVITY','fromMode','searchFlag'],['PAAdvanced-search','pagination','Patch-advisories-list','PA-ADV-SEARCH-SUBMIT'])
+		CMDclickFound = submitParameters(['Mode','cleanUp','id','recordStatus','recordType'],['Patch-advisories-list','true','%A_LoopReadLine%','1','Patch Advisory'])
+		CMDcontinue = submitParameters(['Mode','FROM_ACTIVITY'],['Child-patch-advisory-details','pagination'])
+		CMDaddAct = submitParameters(['Mode','FromMode'],['Activity-history-add-activity','Child-patch-advisory-details'])
+		CMDactText = document.getElementById('activityText').value=
+		CMDsubmitAct = submitUpload(['Mode','EFLUX_ACTION','FromMode'],['Activity-history-add-activity','CLEAR_CHANGES','Child-patch-advisory-details'])
+		CMDeditRsk = submitParameters(['Mode','recId','from-mode'],['Risk-acceptance-request-edit','%A_LoopReadLine%','Child-patch-advisory-details'])
+		CMDeditRskNr = document.getElementById('wwradbNumber').value=
+		CMDeditDate = document.MainForm.targetDate.value='%date%'
+		CMDsubmitExt = submitParameters(['Mode','id','from-mode','EFLUX_ACTION','tab-name','duedate','wwrno','cleanUp'],['Risk-acceptance-request-edit','%A_LoopReadLine%','Child-patch-advisory-details','CLEAR_CHANGES','riskAcceptanceTab','%date%','%RskRecNr%','true'])
+
+
+	SplashImage,, x%xpos% y%ypos% b fs10, Processing %progr%/%line_count% #%A_LoopReadLine% `n Time remaining %timeleft% sec.
+	Progress, b ZH10 w300 CT000000 x%xposP% y%YposP%
+	Progress, %progrbar%,, working...
+
+	;START-------------------------------------------------------------------------
+	;go record
+	winwait, %winSrch%,,15
+	if ErrorLevel = 1
+	{
+	msgbox Not at search page. Try again.
+	return
+	}
+  ControlSend, ahk_parent, {Ctrl down}{Shift down}k{Ctrl up}{Shift up}, %winSrch%
+	Sleep 1000
+	ClipSaved := ClipboardAll
+	clipboard = %CMDfillRec%"%A_LoopReadLine%"
+	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, %winSrch%
+	Sleep 100
+;add check in case no results found
+	clipboard = %CMDsubmitRec%
+	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, %winSrch%
+
+	winwait, %winRes%,,15
+	Sleep 200
+	clipboard = %CMDclickFound%
+	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, %winRes%
+
+	winwait, %winRec%,,15
+	Sleep 200
+	clipboard = %CMDaddAct%
+	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, %winRec%
+
+	winwait, %winAddAct%,,15
+	Sleep 200
+	Iniread, reas, %ini_loc%, Text, reason
+	StringReplace, reas, reas, ¥,`n, All, ;recall linebreaks
+	clipboard = %CMDactText%``%reas%``
+	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, %winAddAct%
+	Sleep 150
+
+	;CMDsubmit:
+	ControlSend, ahk_parent, {Ctrl down}{Shift down}k{Ctrl up}{Shift up}, ahk_class MozillaWindowClass
+	clipboard := CMDsubmitAct
+	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, ahk_class MozillaWindowClass
+
+	winwait, %winNAcont%
+	Sleep 200
+	clipboard := CMDcontinue
+	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, ahk_class MozillaWindowClass
+
+	winwait, %winRec%
+	Sleep 200
+  ;extend:
+	ControlSend, ahk_parent, {Ctrl down}{Shift down}k{Ctrl up}{Shift up}, %winRec%
+	clipboard := CMDeditRsk
+	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, %winRec%
+
+	winwait, %winRsk%
+	Sleep 200
+	clipboard = %CMDeditRskNr%``%RskRecNr%``
+	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, %winRsk%
+	Sleep 200
+	clipboard := CMDeditDate
+	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, %winRsk%
+	Sleep 200
+	clipboard := CMDsubmitExt
+	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, ahk_class MozillaWindowClass
+
+	winwait, %winNAcont%
+	Sleep 200
+	clipboard := CMDcontinue
+	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, ahk_class MozillaWindowClass
+
+	;end:
+	winwait, %winRec%
+	Sleep 200
+	clipboard := CMDreturn
+	ControlSend, ahk_parent, {Ctrl down}v{Ctrl up}{enter}, %winRec%
+
+	timeleft := ((line_count - A_index) * 20)
+	timeleft := round(timeleft)
+	Iniread, closed_r, %ini_loc%, Stats, closed_count, 0
+	closed := closed_r + 1
+	Iniwrite, %closed%, %ini_loc%, Stats, closed_count
+	Sleep 8000
+	}
+	SplashImage, Off
+	Progress, Off
+
+	clipboard := ClipSaved
+	;final:
 	if error = 1
 	msgbox Processing failed at record #%A_LoopReadLine%
 	else

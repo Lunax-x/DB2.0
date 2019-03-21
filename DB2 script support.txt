@@ -2,9 +2,9 @@
 // @name         DB2 script support
 // @namespace    http://tampermonkey.net/
 // @version      0.1
-// @description  
+// @description
 // @author       Lunaxx
-// @match        https://ehnsarmciratihs.extnet.ibm.com/services/security/cirats/index.jsp
+// @match        https://ehnsarmciratihs.extnet.ibm.com/services/security/cirats/*
 // @grant        none
 // @require http://code.jquery.com/jquery-latest.js
 // ==/UserScript==
@@ -31,6 +31,12 @@ $(document).ready(function() {
     } else if
         (document.querySelector("meta[content=Patch-not-applicable_1]")){
         $(document).prop('title', 'DB2 Continue')
+    } else if
+        (document.querySelector("meta[content=Activity-history-add-activity_1]")){
+        $(document).prop('title', 'DB2 Continue')
+    } else if
+        (document.querySelector("meta[content=Activity-history-add-activity_0]")){
+        $(document).prop('title', 'DB2 Add activity')
     }
     $('input#recordNum').css('background-color', '#ffcece')
 });

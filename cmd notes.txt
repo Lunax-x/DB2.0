@@ -28,8 +28,14 @@ submitParameters(['Mode','FromMode'],['Activity-history-add-activity','Child-pat
 Patch advisories link (back to search)
 submitNewFormParameters(['EFLUX_BREADCRUMB','EFLUX_BREADCRUMB','Mode','FROM_ACTIVITY'],['true','true','PAAdvanced-search','NAVIGATION'])
 
+Click Edit risk evaluation info
+submitParameters(['Mode','recId','from-mode'],['Risk-acceptance-request-edit','104336790','Child-patch-advisory-details'])
+
 Select date from Calendar
 document.MainForm.targetDate.value='29 Apr 2019'
+
+Submit extension
+submitParameters(['Mode','id','from-mode','EFLUX_ACTION','tab-name','duedate','wwrno','cleanUp'],['Risk-acceptance-request-edit','104336790','Child-patch-advisory-details','CLEAR_CHANGES','riskAcceptanceTab','30 Mar 2019','ITCS104','true'])
 
 Find text on page (page check)
 (
